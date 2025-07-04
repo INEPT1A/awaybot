@@ -1,20 +1,19 @@
+import os, time
 from telethon import TelegramClient, events
 from telethon.tl.types import User
-import os, time
 
 api_id = int(os.environ['API_ID'])
 api_hash = os.environ['API_HASH']
-session_str = os.environ['SESSION']
-session_name = 'away_userbot'
+session_string = os.environ['SESSION']
 
-AUTO_REPLY_TEXT = "Привет! Сейчас меня нет на месте. Я отвечу позже 👋"
+# Используем сессию из строки для автологина
+client = TelegramClient(StringSession(session_string), api_id, api_hash)
+
+AUTO_REPLY_TEXT = "Ожидай, отвечу позже ⏳"
 COOLDOWN_SECONDS = 300
 
 last_replies = {}
 enabled = True
-
-client = TelegramClient(session_name, api_id, api_hash)
-client.session = session_str  # использовать session-string
 
 @client.on(events.NewMessage(incoming=True))
 async def auto_reply(event):
@@ -24,16 +23,17 @@ async def auto_reply(event):
     if not enabled:
         return
     now = time.time()
-    if sender.id not in last_replies or now - last_replies[sender.id] >= COOLDOWN_SECONDS:
+    uid = sender.id
+    if uid not in last_replies or now - last_replies[uid] >= COOLDOWN_SECONDS:
         await event.reply(AUTO_REPLY_TEXT)
-        last_replies[sender.id] = now
+        last_replies[uid] = now
 
 @client.on(events.NewMessage(outgoing=True, pattern=r'^\.away (on|off)$'))
 async def toggle(event):
     global enabled
-    enabled = (event.pattern_match.group(1) == 'on')
+    enabled = event.pattern_match.group(1) == 'on'
     await event.reply(f"АФК автоответ {'включён ✅' if enabled else 'выключен ❌'}.")
 
-print("АФК-бот стартовал")
+print("АФК-бот запущен и работает.")
 client.start()
 client.run_until_disconnected()
