@@ -1,5 +1,6 @@
 import os, time
 from telethon import TelegramClient, events
+from telethon.sessions import StringSession  # 🛠️ ЭТОГО НЕ ХВАТАЛО
 from telethon.tl.types import User
 
 api_id = int(os.environ['API_ID'])
